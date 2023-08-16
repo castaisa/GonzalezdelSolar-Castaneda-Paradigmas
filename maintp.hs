@@ -1,4 +1,2 @@
---hoal mundo
----  oo
---ppp
---kk
+hola :: Num a => a -> a
+hola a = a +1

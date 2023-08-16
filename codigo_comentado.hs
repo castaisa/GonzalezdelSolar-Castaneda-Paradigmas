@@ -2,9 +2,12 @@ Telco
 
 Es una compañia que se dedica a comunicar las ciudades que se susbcriben a su servicio.
 Primero las ingresa al mapa de la región. 
+-- Hay que hacer un diccionario a algo del estilo? PREGUNTAR
 Luego establece vínculos entre ellas de cierta calidad y capacidad.
+--ESO ES UN ATRIBUTO DE LA CIUDAD? SE ALMACENA EN ALGUNA VARIABLE?
 Finalmente establece canales que conectan distintas ciudades ocupando una unidad de 
 capacidad por cada enlace recorrido.
+--DEFINIR AL TUNEL CON UN LINK Y A LA CIUDAD CON UN LINK TAMBIEN?
 
 Para sostener este modelo se cuenta con las siguientes entidades:
 
@@ -13,29 +16,32 @@ module Point ( Point, newP, difP)
 
 data Point = Poi Int Int deriving (Eq, Show)
 
-newP :: Int -> Int -> Point
-new_P x y = Poi x y
+new_P :: Int -> Int -> Point
 
-difP :: Point -> Poit -> Float  -- distancia absoluta
-difP (Poi x y) (Poi a b) =  
 
+differnce_P :: Point -> Point -> Float  -- distancia absoluta
 -----------------
 module City ( City, newC, nameC, distanceC )
    where
 
 data City = Cit String Point deriving (Eq, Show)
 
-newC :: String -> Point -> City
-nameC :: City -> String
+new_C :: String -> Point -> City
+name_C :: City -> String --PREGUNTAR
 distanceC :: City -> City -> Float
 -----------------
-module Quality ( Quality, newQ, capacityQ, delayQ )
+module Quality ( Quality, newQ, capacityQ, delayQ ) 
    where
 
 data Quality = Qua String Int Float deriving (Eq, Show)
 
-newQ :: String -> Int -> Float -> Quality
-capacityQ :: Quality -> Int -- cuantos túneles puede tolerar esta conexión
+-- QUALITY:
+-- INT son los TUNELES
+-- FLOAT es la demora por unidad de distancia que sucede en las conexiones de este canal
+-- STRING que es?
+
+newQ :: String -> Int -> Float -> Quality --PREGUNTAR COMO FUNCIONA    : QUALITY LINKLEADA A LA CANT DE TUNELES 
+capacityQ :: Quality -> Int -- cuantos túneles puede tolerar esta conexión -- 
 delayQ :: Quality -> Float  -- la demora por unidad de distancia que sucede en las conexiones de este canal
 -------------------
 module Link ( Link, newL, linksL, connectsL, capacityL, delayL )
@@ -49,10 +55,12 @@ linksL :: City -> City -> Link -> Bool -- indica si estas dos ciudades distintas
 capacityL :: Link -> Int
 delayL :: Link -> Float     -- la demora que sufre una conexion en este canal
 -------------------
+-- PREGUNTAR DIFERENCIA ENTRE TUNEL Y LINK
 module Tunel ( Tunel, newT, connectsT, usesT, delayT )
    where
 
 data Tunel = Tun [Link] deriving (Eq, Show)
+-- PREGUNTAR XQ ESTA ENTRE CORCHETES?
 
 newT :: [Link] -> Tunel
 connectsT :: City -> City -> Tunel -> Bool -- inidca si este tunel conceta estas dos ciudades distintas
@@ -72,4 +80,4 @@ linkedR :: Region -> City -> City -> Bool -- indica si estas dos ciudades estan 
 delayR :: Region -> City -> City -> Float -- dadas dos ciudades conectadas, indica la demora
 availableCapacityForR :: Region -> City -> City -> Int -- indica la capacidad disponible entre dos ciudades
 
-
+-- PREGUNTAR QUE ES LA REGION Y PORQUE TE DEVUELVEN REGIIN LAS PRIMERAS COSAS.
