@@ -1,2 +1,11 @@
-hola :: Num a => a -> a
-hola a = a +1
+show --> una clase / 
+si yo imprimo hanoi entonces pasa a ser de la clase show  
+
+     |
+    (|) 
+   ((|)) 
+  (((|)))
+ ((((|))))
+-----|-----
+
+
