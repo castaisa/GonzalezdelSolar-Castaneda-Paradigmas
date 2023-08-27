@@ -1,84 +1,76 @@
-module Region ( Region, newR, foundR, linkR, tunelR, pathR, linksForR, connectedR, linkedR, delayR, availableCapacityForR, usedCapacityForR )
+module Region ( Region, newR, foundR, linkR, tunelR, connectedR, linkedR, delayR, availableCapacityForR)
    where
-      
+
 import City 
 import Quality
 import Link 
 import Tunel 
+import Control.Exception
 
-data Region = Reg [City] [Link] [Tunel]
+data Region = Reg [City] [Link] [Tunel] deriving (Show)
+
 newR :: Region
 newR  = Reg [] [] []
-foundR :: Region -> City -> Region -- agrega una nueva ciudad a la región
-foundR (Reg cs [Link] [Tunel]) ciudad = Reg cs:ciudad Link Tunel
---desiciones que tomar
--- o (Reg cs) ciudad = Reg [ciudad:cs]
+
+foundR :: Region -> City -> Region
+foundR (Reg listC listL listT) city2 = Reg (listC ++ [city2]) listL listT
+
 linkR :: Region -> City -> City -> Quality -> Region -- enlaza dos ciudades de la región con un enlace de la calidad indicada
-linkR (Reg cs listaL t) ciudad1 ciudad2 calidad = Reg cs [listaL:(newL ciudad1 ciudad2 calidad)] t
-
-estaLink :: City -> City -> [Link] -> Link
-estaLink a b [] = []
-estaLink a b [link:otrosLinks] | (linksL a b link) == True = link
-                               |otherwise estalink a b [otrosLinks]
-
-
-
-
+linkR (Reg listC listL listT) city1 city2 quality = Reg listC (listL ++ [newL city1 city2 quality]) listT
 
 tunelR :: Region -> [ City ] -> Region -- genera una comunicación entre dos ciudades distintas de la región
+tunelR (Reg listC listL listT) cities = Reg listC listL (listT ++ [newT (tunelsUsedforT  cities listL listT)])
 
---------
-connectsT :: City -> City -> Tunel -> Bool -- inidca si este tunel conceta estas dos ciudades distintas
-connectsT ciudad1 ciudad2 (Tun listL) | ((connectsL ciudad1 (head listL)) == True && (connectsL ciudad1 (listL !! 1)) == False && (connectsL ciudad2 (last listL)) == True && (connectsL ciudad2 ( last (init listL)) == False ))
-                                      || ((connectsL ciudad2 (head listL)) == True && (connectsL ciudad2 (listL !! 1)) == False && (connectsL ciudad1 (last listL)) == True && (connectsL ciudad1 ( last (init listL)) == False )) = True
-                                      | otherwise = False
-                                      -- VER CASO QUE FALTA
-                                      -- COMO NO PONER LOS TRUE Y FALSE
+tunelsUsedforT  :: [City] -> [Link] -> [Tunel] -> [Link]
+tunelsUsedforT  [a , b] listL listT = 
+                                 if capacityLeft listT (findlinkforT  listL a b) 
+                                 then [ findlinkforT  listL a b]
+                                 else throw (ErrorCall "No hay espacio suficiente en alguno de los links")
+tunelsUsedforT  (a:b:cities) listL listT = 
+                                 if capacityLeft listT (findlinkforT  listL a b) 
+                                 then [ findlinkforT  listL a b] ++ tunelsUsedforT  (b:cities) listL listT
+                                 else throw (ErrorCall "No hay espacio suficiente en alguno de los links")
 
-------
+findlinkforT  :: [Link] -> City -> City -> Link
+findlinkforT  [link] city1 city2  | linksL city1 city2 link = link
+                                  | otherwise = throw (ErrorCall $ "No hay un link hecho entre las ciudades " ++ nameC city1 ++ " y " ++ nameC city2)
+findlinkforT  (lin:links) city1 city2  | linksL city1 city2 lin = lin
+                                       | otherwise = findlinkforT  links city1 city2
 
 connectedR :: Region -> City -> City -> Bool -- indica si estas dos ciudades estan conectadas por un tunel
-connectedR (Reg listaC listaL []) ciudad1 ciudad2 = False
-connectedR (Reg listaC listaL [tun:tuneles]) ciudad1 ciudad2 | connectsT ciudad1 ciudad2 tun = True
-                                                             | otherwise connectedR (Reg listaC listaL [tuneles]) ciudad1 ciudad2
-
+connectedR (Reg listC listL []) city1 city2 = False
+connectedR (Reg listC listL (tun:tunels)) city1 city2 | connectsT city1 city2 tun = True
+                                                      | otherwise = connectedR (Reg listC listL tunels) city1 city2
 
 linkedR :: Region -> City -> City -> Bool -- indica si estas dos ciudades estan enlazadas
-linkedR (Reg listaC [] listaT) ciudad1 ciudad2 = False
-linkedR (Reg listaC [lin:links] listaT) ciudad1 ciudad2 | linksL ciudad1 ciudad2 lin = True
-                                                        | otherwise linkedR (Reg listaC [links] listaT) ciudad1 ciudad2
--- estas dos no son la misma? cual es la diferencia con linksL
+linkedR (Reg listC [] listT) city1 city2 = False
+linkedR (Reg listC (lin:links) listT) city1 city2 | linksL city1 city2 lin = True
+                                                  | otherwise = linkedR (Reg listC links listT) city1 city2
+
 delayR :: Region -> City -> City -> Float -- dadas dos ciudades conectadas, indica la demora
+delayR (Reg listC listL listT) city1 city2 = delayT (whichTconnects listT city1 city2)
+
+whichTconnects :: [Tunel] -> City -> City -> Tunel
+whichTconnects [tun] _ _ = tun
+whichTconnects (tun:tunels) city1 city2 | connectsT city1 city2 tun = tun
+                                        | otherwise = whichTconnects tunels city1 city2
+
 availableCapacityForR :: Region -> City -> City -> Int -- indica la capacidad disponible entre dos ciudades
+availableCapacityForR (Reg listC listL listT) city1 city2 = (capacityL (linkThatConnects listL city1 city2)) - (tunelsUsed listT (linkThatConnects listL city1 city2))
 
+linkThatConnects :: [Link] -> City -> City -> Link
+linkThatConnects [link] _ _ = link
+linkThatConnects (lin:links) city1 city2 | linksL city1 city2 lin = lin
+                                         | otherwise = linkThatConnects links city1 city2
 
--- HAY DECICIONES QUE TOMAR: NQUE PASA SI YA HAY ENLACE EN A Y C
---CHEQUEAR QUE EXISTE Y LA CAPACIDAD
+capacityLeft :: [Tunel]-> Link -> Bool
+capacityLeft listT link = ((capacityL link) > (tunelsUsed listT link)) 
 
+tunelsUsed :: [Tunel] -> Link -> Int
+tunelsUsed [] link = 0
+tunelsUsed (tun:tunels) link = usesTorNot tun link + tunelsUsed tunels link
 
-
-
--- tunelR :: Region -> [ City ] -> Region
-
-   
-elembyelem :: a -> [b]-> [b] 
-elembyelem a [] = []
-elembyelem (x:xs) =  
-                    |elembyelem xs
-                    
-
---tunel = [[AB,BC,CD] , [BC,CD] , [DE,EF]]
---LINK = BC
---3
-
-hayCapacidad :: Link -> [Tunel] -> Bool
-hayCapacidad link listaT | ((capacityL link )<= joinlinks listaT link ) = False
-                         | otherwise True
-
-joinlinks :: [Tunel] -> Link -> Int
-joinlinks [] link = 0
-joinlinks [tun:tuneles] link = joinlinkschica tun link + joinlinks [tuneles] link
-
-joinlinkschica :: Tunel -> Link -> Int
-joinlinkschica tunel link | usesT link tunel = 1
+usesTorNot :: Tunel -> Link -> Int
+usesTorNot tunel link | usesT link tunel = 1
                           | otherwise = 0
+
