@@ -77,20 +77,20 @@ private static final String Something = "Something";
 
   @Test public void test10CanNotTakeWhenThereAreNoObjectsInTheQueue() {
     Queue queue = new Queue();
-    assertThrowsLike( () -> queue.take(), CajaVacia.QueueIsEmpty);
+    assertThrowsLike( () -> queue.take(), EmptyBox.QueueIsEmpty);
   }
 
   @Test public void test09CanNotTakeWhenThereAreNoObjectsInTheQueueAndTheQueueHadObjects() {
     Queue queue = new Queue();
     queue.add( Something );
     queue.take();
-    assertThrowsLike( () -> queue.take(), CajaVacia.QueueIsEmpty);
+    assertThrowsLike( () -> queue.take(), EmptyBox.QueueIsEmpty);
     
   }
 
   @Test public void test10CanNotHeadWhenThereAreNoObjectsInTheQueue() {
     Queue queue = new Queue();
-    assertThrowsLike( () -> queue.head(), CajaVacia.QueueIsEmpty);
+    assertThrowsLike( () -> queue.head(), EmptyBox.QueueIsEmpty);
   }
     private void assertThrowsLike( Executable executable, String message ) {
 	    assertEquals( message, 

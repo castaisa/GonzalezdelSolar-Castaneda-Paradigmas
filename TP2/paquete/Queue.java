@@ -3,40 +3,44 @@ import java.util.ArrayList;
 
 public class Queue {
 	
-private ArrayList<Caja> listacajas;
-public static CajaVacia cajavacia;
+private ArrayList<Box> listOfBoxes;
+public static EmptyBox emptyBox;
 
 public Queue() {
-	listacajas = new ArrayList<Caja>();
-	cajavacia = new CajaVacia();
-	listacajas.add( cajavacia );
+	listOfBoxes = new ArrayList<Box>();
+	emptyBox = new EmptyBox();
+	listOfBoxes.add( emptyBox );
 	}
 
 public boolean isEmpty(){
-	 return listacajas.size() == 1;
+	 return listOfBoxes.size() == 1;
 	}
 
 public Queue add( Object  cargo ) {
-	Caja cajallena = new CajaLlena( cargo );
-	listacajas.add(listacajas.size() -1, cajallena);
+	Box nonEmptyBox = new NonEmptyBox( cargo );
+	listOfBoxes.add(this.size(), nonEmptyBox);
 	return this;
 	}
 
 public Object take() {
-	Caja cajaASacar = listacajas.get(0);
-	Object elemento = cajaASacar.Return();
-	listacajas.remove(0); 
-	return elemento;	
+	Object cargoIndex0 = getCargoInIndex0();
+	listOfBoxes.remove(0); 
+	return cargoIndex0;	
 	}
 
 public Object head() {
-	Caja cabeza = listacajas.get(0);
-	Object elemento = cabeza.Return();
-	return elemento;
+	return getCargoInIndex0();
 	}
 
 public int size() {
-	return (listacajas.size() -1) ;
+	return (listOfBoxes.size() -1) ;
 	}
+
+private Object getCargoInIndex0() {
+	Box boxInIndex0 = listOfBoxes.get(0);
+	Object cargoIndex0 = boxInIndex0.returnCargo();
+	return cargoIndex0;
+	}
+
 
 }
